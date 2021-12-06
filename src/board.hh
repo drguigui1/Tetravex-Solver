@@ -17,7 +17,9 @@ public:
 
     // Getters
     int get_nb_tiles() const { return this->_board.size(); }
+    int get_width() const { return this->_width; }
     Tile get_tile(int idx) const { return this->_board[idx]; }
+    Tile get_tile(int i, int j) const { return this->_board[i * _width + j]; }
 
     // Pretty print
     friend std::ostream& operator<<(std::ostream& os, const Board& b);
