@@ -1,7 +1,7 @@
 #include "board.hh"
 
 Board::Board(std::string filepath) {
-    this->board = std::vector<Tile>();
+    this->_board = std::vector<Tile>();
 
     std::ifstream file(filepath);
 
@@ -13,6 +13,12 @@ Board::Board(std::string filepath) {
         }
         file.close();
     }
+
+    this->_width = (int) std::sqrt(this->_board.size());
+}
+
+void Board::swap_tiles(int i1, int j1, int i2, int j2) {
+    std::swap(this->_board[i1 * this->_width + j1], this->_board[i2 * this->_width + j2]);
 }
 
 // ==============================
