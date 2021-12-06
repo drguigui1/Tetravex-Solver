@@ -1,9 +1,18 @@
 #include "board.hh"
 
 Board::Board(std::string filepath) {
-    // TODO
     this->board = std::vector<Tile>();
-    std::cout << filepath << '\n';
+
+    std::ifstream file(filepath);
+
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            Tile t = get_tile_from_str(line);
+            this->add_tile(t);
+        }
+        file.close();
+    }
 }
 
 // ==============================

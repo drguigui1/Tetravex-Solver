@@ -1,14 +1,15 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
+#include "utils.hh"
 #include "tile.hh"
 
 class Board {
 public:
+    Board() { this->board = std::vector<Tile>(); }
     Board(std::string filepath);
 
     void add_tile(Tile tile) { this->board.push_back(tile); }
