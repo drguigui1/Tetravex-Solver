@@ -132,5 +132,9 @@ void Solver::solve() {
 
         // Update the temperature
         temp_decrement_fn();
+
+        if (d <= 10) {
+            std::cout << _board;
+        }
     }
 }

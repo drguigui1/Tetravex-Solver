@@ -2,7 +2,7 @@
 
 int main() {
     
-    Board b("test_input3");
+    Board b("tests/base_cases/test_input6");
     Solver s(b);
 
     std::cout << b;
