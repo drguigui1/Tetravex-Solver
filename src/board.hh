@@ -14,12 +14,15 @@ public:
 
     void add_tile(Tile tile) { this->_board.push_back(tile); }
     void swap_tiles(int i1, int j1, int i2, int j2);
+    void swap_tiles(int i, int j);
 
     // Getters
     int get_nb_tiles() const { return this->_board.size(); }
     int get_width() const { return this->_width; }
     Tile get_tile(int idx) const { return this->_board[idx]; }
     Tile get_tile(int i, int j) const { return this->_board[i * _width + j]; }
+
+    std::vector<int> get_available_tiles_ids();
 
     // Pretty print
     friend std::ostream& operator<<(std::ostream& os, const Board& b);

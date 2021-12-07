@@ -1,10 +1,12 @@
 #include "solver.hh"
 
 int main() {
-    Board b("test_input");
+    
+    Board b("test_input3");
+    Solver s(b);
 
     std::cout << b;
-    Solver s(b);
-    std::cout << s.compute_board_dist() << '\n';
+    s.solve();
+    std::cout << s.get_board();
     return 0;
 }

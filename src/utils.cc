@@ -32,3 +32,25 @@ Tile get_tile_from_str(std::string str) {
 
     return Tile(nord, west, east, sud, good_pos);
 }
+
+
+// ========================
+// Generate random numbers
+// ========================
+
+int randn(int range_from, int range_to) {
+    std::random_device rand_dev;
+    std::mt19937 generator(rand_dev());
+    std::uniform_int_distribution<int> distr(range_from, range_to);
+
+    return distr(generator);
+}
+
+float randf() {
+    // random generation
+    std::random_device rand_dev;
+    std::mt19937 generator(rand_dev());
+    std::uniform_real_distribution<float> distribution(0.0, 1.0);
+
+    return distribution(generator);
+}

@@ -21,6 +21,22 @@ void Board::swap_tiles(int i1, int j1, int i2, int j2) {
     std::swap(this->_board[i1 * this->_width + j1], this->_board[i2 * this->_width + j2]);
 }
 
+void Board::swap_tiles(int i, int j) {
+    std::swap(this->_board[i], this->_board[j]);
+}
+
+std::vector<int> Board::get_available_tiles_ids() {
+    std::vector<int> vec;
+
+    for (int i = 0; i < (int)_board.size(); ++i) {
+        if (!get_tile(i).get_good_position()) {
+            vec.push_back(i);
+        }
+    }
+
+    return vec;
+}
+
 // ==============================
 // ======== Pretty Print ========
 // ==============================
