@@ -1,12 +1,21 @@
 #include "solver.hh"
 
-int main() {
-    
-    Board b("tests/base_cases/test_input6");
-    Solver s(b);
+int main(int argc, char** argv) {
+    if (argc == 2) {
+        // Test case
+        std::string input_file(argv[1]);
+        // TODO
+    }
+    else if (argc >= 3) {
+        // First argument input file / Second argument output file
+        std::string input_file(argv[1]);
+        std::string output_file(argv[2]);
 
-    std::cout << b;
-    s.solve();
-    std::cout << s.get_board();
+        Board b(input_file);
+        Solver s(b);
+        s.solve();
+        s.save(output_file);
+    }
+
     return 0;
 }

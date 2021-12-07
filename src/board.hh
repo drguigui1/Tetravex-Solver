@@ -24,6 +24,9 @@ public:
 
     std::vector<int> get_available_tiles_ids();
 
+    // Save the board
+    void save(std::string path);
+
     // Pretty print
     friend std::ostream& operator<<(std::ostream& os, const Board& b);
 

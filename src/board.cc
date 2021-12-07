@@ -37,6 +37,19 @@ std::vector<int> Board::get_available_tiles_ids() {
     return vec;
 }
 
+void Board::save(std::string path) {
+    std::ofstream f;
+    f.open(path);
+
+    for (size_t i = 0; i < _board.size(); ++i) {
+        // Add a tile in the file
+        Tile t = _board[i];
+        f << t.get_nord() << t.get_west() << t.get_east() << t.get_sud() << '\n';
+    }
+
+    f.close();
+}
+
 // ==============================
 // ======== Pretty Print ========
 // ==============================

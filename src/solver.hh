@@ -9,6 +9,7 @@ public:
     Solver(Board board, float init_temp, float lambda);
 
     void solve();
+    void save(std::string path);
 
     Board get_board() const { return this->_board; }
 

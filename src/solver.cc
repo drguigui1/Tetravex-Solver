@@ -138,3 +138,8 @@ void Solver::solve() {
         }
     }
 }
+
+
+void Solver::save(std::string path) {
+    this->_board.save(path);
+}
