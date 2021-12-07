@@ -6,11 +6,14 @@ Simulated Annealing with Metropolis-Hastings algorithm for Tetravex Solver
 
 Input file format (Each tile on one row in Top/Left/Right/Bottom format):
 ```
-1234
-4567
-7890
-4321
+0986 @ 
+6524
+5283
+3805
 ```
+
+@ means that the tile is at the proper position
+
 
 Build:
 ```
