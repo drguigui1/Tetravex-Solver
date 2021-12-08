@@ -5,6 +5,7 @@ Solver::Solver(Board board) :
 {
     this->_temp = 5;
     this->_lambda = 0.99999;
+    this->_verbose = false;
 }
 
 Solver::Solver(Board board, float init_temp) :
@@ -12,6 +13,7 @@ Solver::Solver(Board board, float init_temp) :
     _temp(init_temp)
 {
     this->_lambda = 0.98;
+    this->_verbose = false;
 }
 
 Solver::Solver(Board board, float init_temp, float lambda) :
@@ -19,6 +21,7 @@ Solver::Solver(Board board, float init_temp, float lambda) :
     _temp(init_temp),
     _lambda(lambda)
 {
+    this->_verbose = false;
 }
 
 float Solver::get_transition_prob(float dist_s1, float dist_s2) {
@@ -105,18 +108,22 @@ void Solver::solve() {
         // compute new board dist
         float new_d = compute_board_dist();
 
-        std::cout << d << "  " << new_d << '\n';
+        if (_verbose)
+            std::cout << d << "  " << new_d << '\n';
 
         // Check for worst cases
         if (new_d > d) {
             float proba = get_transition_prob(d, new_d);
             float rd = randf();
-            std::cout << "Worst case proba: " << proba << "/ rd: " << rd << '\n';
+
+            if (_verbose)
+                std::cout << "Worst case proba: " << proba << "/ rd: " << rd << '\n';
 
             // make the transition with the probability 'proba'
             if (rd > proba) {
                 // revert the swap
-                std::cout << "No transition with proba: " << proba << '\n';
+                if (_verbose)
+                    std::cout << "No transition with proba: " << proba << '\n';
                 this->_board.swap_tiles(this->last_swap_i, this->last_swap_j);
             }
             else {
@@ -128,12 +135,13 @@ void Solver::solve() {
             d = new_d;
         }
 
-        std::cout << '\n';
+        if (_verbose)
+            std::cout << '\n';
 
         // Update the temperature
         temp_decrement_fn();
 
-        if (d <= 10) {
+        if (d <= 10 && _verbose) {
             std::cout << _board;
         }
     }

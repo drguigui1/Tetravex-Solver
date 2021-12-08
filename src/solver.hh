@@ -11,7 +11,9 @@ public:
     void solve();
     void save(std::string path);
 
+    // Getters / Setters
     Board get_board() const { return this->_board; }
+    void set_verbose() { this->_verbose = true; }
 
 private:
     float compute_tile_dist(int i, int j);
@@ -23,6 +25,7 @@ private:
     Board _board;
     float _temp;
     float _lambda;
+    bool _verbose;
 
     // Keep information of the index of the last
     // In order to revert if necessary
