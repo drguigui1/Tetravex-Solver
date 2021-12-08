@@ -25,6 +25,20 @@ Launch with input file:
 ./a.out <input_file> <output_file>
 ```
 
+Launch on only one file (example):
+```
+./a.out tests/base_cases/test_input1
++-----+-----+
+|  0  |  3  |
+| 9 8 | 8 0 |
+|  6  |  5  |
++-----+-----+
+|  6  |  5  |
+| 5 2 | 2 8 |
+|  4  |  3  |
++-----+-----+
+```
+
 ## Resources
 
 Paper about Simulated Annealing:
