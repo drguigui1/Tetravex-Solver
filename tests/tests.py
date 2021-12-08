@@ -17,6 +17,12 @@ import time
 import glob
 import os
 
+# create dir
+from pathlib import Path
+
+# random number generation / shuffle
+import random
+
 # Var (10 sec for timeout)
 TEST_TIMEOUT = 10
 
@@ -91,8 +97,82 @@ def launch_all_tests(tests_path):
     for test_path in tests_path:
         launch_one_test(test_path)
 
-def test_fuzzing():
-    pass
+def generate_coords(grid, idx, grid_size):
+    '''
+    Generate top / left / right / bottom coordinates
+    '''
+    # if corner top (generate top random)
+    # if corner left (generate left random)
+    # generate random all other
+    i_coord = idx // grid_size
+    j_coord = idx % grid_size
+
+    # TOP case
+    # if not corner top
+    if i_coord - 1 >= 0:
+        top_idx = (i_coord - 1) * grid_size + j_coord
+        top = grid[top_idx][3]
+    else: # random generation
+        top = random.randint(0, 9)
+
+    # LEFT case
+    # if not corner left
+    if j_coord - 1 >= 0:
+        left_idx = i_coord * grid_size + j_coord - 1
+        left = grid[left_idx][2]
+    else: # random generation
+        left  = random.randint(0, 9)
+        
+    # BOTTOM / RIGHT cases
+    # generate bottom and right randomly
+    bottom = random.randint(0, 9)
+    right = random.randint(0, 9)
+
+    return [top, left, right, bottom]
+
+def generate_grid(grid_size):
+    '''
+    Generate a random grid of 'grid_size'
+    '''
+    new_grid = []
+    for i in range(grid_size * grid_size):
+        new_grid.append(generate_coords(new_grid, i, grid_size))
+
+    return new_grid
+
+def test_fuzzing(nb_tests):
+    # TODO change grid size (maybe random)
+    grid_sizes = [2,2,2,3,3,3,3,4,4,5]
+    Path("tests/generated_tests/").mkdir(parents=True, exist_ok=True)
+
+    for i in range(nb_tests):
+        # Generate the grid
+        grid_size = grid_sizes[random.randint(0, len(grid_sizes)-1)]
+        grid = generate_grid(grid_size)
+
+        # shuffle the grid
+        random.shuffle(grid)
+
+        # save the grid to file
+        test_path = 'tests/generated_tests/{}_{}x{}'.format(i, grid_size, grid_size)
+        grid_to_file(grid, test_path)
+
+        # Launch the test
+        launch_one_test(test_path)
+
+# ====================
+# ======= SAVE =======
+# ====================
+
+def grid_to_file(grid, path):
+    f = open(path, 'w+')
+
+    res = ''
+    for tile in grid:
+        res += "{}{}{}{}\n".format(tile[0], tile[1], tile[2], tile[3])
+
+    f.write(res)
+    f.close()
 
 # ====================
 # ======= MAIN =======
@@ -122,8 +202,7 @@ def main():
     elif arg_list.name:
         launch_one_test(arg_list.name)
     elif arg_list.fuzzing:
-        print(arg_list.fuzzing)
-        test_fuzzing()
+        test_fuzzing(int(arg_list.fuzzing))
     else: # all case (default case)
         tests_path = list_tests(base_tests_path)
         launch_all_tests(tests_path)
