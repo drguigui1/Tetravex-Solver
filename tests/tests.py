@@ -141,7 +141,6 @@ def generate_grid(grid_size):
     return new_grid
 
 def test_fuzzing(nb_tests):
-    # TODO change grid size (maybe random)
     grid_sizes = [2,2,2,3,3,3,3,4,4,5]
     Path("tests/generated_tests/").mkdir(parents=True, exist_ok=True)
 
