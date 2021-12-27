@@ -3,8 +3,8 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    this->_temp = 5;
-    this->_lambda = 0.99999;
+    this->_temp = 6;
+    this->_lambda = 0.96;
     this->_verbose = false;
 }
 
@@ -30,9 +30,8 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
 
 void Solver::temp_decrement_fn() {
     this->_temp *= this->_lambda;
-    if (this->_temp < 1.0) {
-        this->_temp = 1.0;
-    }
+    //if (this->_temp < 1)
+    //    this->_temp = 1.0f;
 }
 
 float Solver::compute_tile_dist(int i, int j) {
@@ -99,6 +98,7 @@ void Solver::random_swap() {
 void Solver::solve() {
     // Compute the distance of the board
     float d = compute_board_dist();
+    int stuck_count = 0;
 
     while (d != 0.0) {
         // Apply random swap (keep in memory the swap)
@@ -140,6 +140,18 @@ void Solver::solve() {
 
         // Update the temperature
         temp_decrement_fn();
+
+        if (new_d >= d)
+            stuck_count++;
+        else
+            stuck_count = 0;
+
+        if (stuck_count > 80) {
+            this->_temp += 5;
+            //std::cout << "Stuck: " << this->_temp << " with: " << stuck_count << '\n';
+            stuck_count = 0;
+        }
+
 
         if (d <= 10 && _verbose) {
             std::cout << _board;

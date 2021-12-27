@@ -6,6 +6,7 @@ int main(int argc, char** argv) {
         std::string input_file(argv[1]);
         Board b(input_file);
         Solver s(b);
+        //s.set_verbose();
         s.solve();
         std::cout << s.get_board();
     }
