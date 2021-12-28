@@ -41,10 +41,8 @@ Launch on only one file (example):
 
 ## Resources
 
-Paper about Simulated Annealing:
-
-https://hal-enac.archives-ouvertes.fr/hal-01887543/document
-
-http://rbanchs.com/documents/THFEL_PR15.pdf
-
+Initial temperature of simulated annealing:
 https://www.researchgate.net/publication/227061666_Computing_the_Initial_Temperature_of_Simulated_Annealing
+
+Cooling schedule:
+http://what-when-how.com/artificial-intelligence/a-comparison-of-cooling-schedules-for-simulated-annealing-artificial-intelligence/

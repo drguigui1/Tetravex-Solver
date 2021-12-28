@@ -3,35 +3,69 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    this->_temp = 6;
-    this->_lambda = 0.96;
-    this->_verbose = false;
-}
-
-Solver::Solver(Board board, float init_temp) :
-    _board(board),
-    _temp(init_temp)
-{
+    this->_t0 = this->init_temp_max_c();
+    this->_t = this->_t0;
     this->_lambda = 0.98;
     this->_verbose = false;
+
+    // TODO maybe change
+    this->_cooling_type = EXP_MULT;
+    this->_t_min = 1e-6;
 }
 
-Solver::Solver(Board board, float init_temp, float lambda) :
+Solver::Solver(Board board, float t0) :
     _board(board),
-    _temp(init_temp),
+    _t(t0)
+{
+    this->_lambda = 0.999;
+    this->_verbose = false;
+}
+
+Solver::Solver(Board board, float t0, float lambda) :
+    _board(board),
+    _t(t0),
     _lambda(lambda)
 {
     this->_verbose = false;
 }
 
+float Solver::init_temp_max_c() {
+    float max_dist = 0.0f;
+
+    for (int i = 0; i < this->_board.get_width(); ++i) {
+        for (int j = 0; j < this->_board.get_width(); ++j) {
+            float curr_dist = compute_tile_dist(i, j);
+
+            if (curr_dist > max_dist)
+                max_dist = curr_dist;
+        }
+    }
+
+    return max_dist;
+}
+
 float Solver::get_transition_prob(float dist_s1, float dist_s2) {
-    return std::exp((dist_s1 - dist_s2) / this->_temp);
+    return std::exp((dist_s1 - dist_s2) / this->_t);
 }
 
 void Solver::temp_decrement_fn() {
-    this->_temp *= this->_lambda;
-    //if (this->_temp < 1)
-    //    this->_temp = 1.0f;
+    _t *= _lambda;
+    // switch (this->_cooling_type) {
+    //     case EXP_MULT:
+    //         _t = exp_mult_cooling(_t0, _lambda, _k);
+    //         break;
+    //     default:
+    //         break;
+    // }
+
+    // TODO maybe change
+    // Do something smarter
+    if (_t < _t_min)
+        _t += 2.0f;
+
+    // Increment the counter
+    // Keep the information of number of iteration
+    _k++;
 }
 
 float Solver::compute_tile_dist(int i, int j) {
@@ -91,14 +125,46 @@ void Solver::random_swap() {
     this->_board.swap_tiles(id1, id2);
 
     // Store the swap
-    this->last_swap_i = id1;
-    this->last_swap_j = id2;
+    this->_last_swap_i = id1;
+    this->_last_swap_j = id2;
+}
+
+void Solver::display_log(bool first_log) {
+    std::cout << "It idx: " << _k << '\n';
+    std::cout << _board << '\n';
+    std::cout << "It idx: " << _k << '\n';
+
+    if (first_log) {
+        std::cout << "T0:     " << _t0 << '\n';
+        std::cout << "T_min:  " << _t_min << '\n';
+        std::cout << "Lambda: " << _lambda << '\n';
+    }
+    std::cout << "T:      " << _t << '\n';
+    std::cout << "Cost:   " << _curr_cost << '\n';
+
+    int w = _board.get_width();
+
+    if (!first_log) {
+        std::cout << "Swap: ("
+                  << _last_swap_i / w << ","
+                  << _last_swap_i % w << ") -> ("
+                  << _last_swap_j / w << ","
+                  << _last_swap_j % w << ")\n";
+    }
+
+    std::cout << '\n' << "---------------" << '\n';
 }
 
 void Solver::solve() {
     // Compute the distance of the board
     float d = compute_board_dist();
     int stuck_count = 0;
+
+    this->_curr_cost = d;
+
+    if (_verbose) {
+        display_log(true);
+    }
 
     while (d != 0.0) {
         // Apply random swap (keep in memory the swap)
@@ -108,23 +174,15 @@ void Solver::solve() {
         // compute new board dist
         float new_d = compute_board_dist();
 
-        if (_verbose)
-            std::cout << d << "  " << new_d << '\n';
-
         // Check for worst cases
         if (new_d > d) {
             float proba = get_transition_prob(d, new_d);
             float rd = randf();
 
-            if (_verbose)
-                std::cout << "Worst case proba: " << proba << "/ rd: " << rd << '\n';
-
             // make the transition with the probability 'proba'
             if (rd > proba) {
                 // revert the swap
-                if (_verbose)
-                    std::cout << "No transition with proba: " << proba << '\n';
-                this->_board.swap_tiles(this->last_swap_i, this->last_swap_j);
+                this->_board.swap_tiles(this->_last_swap_i, this->_last_swap_j);
             }
             else {
                 d = new_d;
@@ -135,9 +193,6 @@ void Solver::solve() {
             d = new_d;
         }
 
-        if (_verbose)
-            std::cout << '\n';
-
         // Update the temperature
         temp_decrement_fn();
 
@@ -147,14 +202,14 @@ void Solver::solve() {
             stuck_count = 0;
 
         if (stuck_count > 80) {
-            this->_temp += 5;
-            //std::cout << "Stuck: " << this->_temp << " with: " << stuck_count << '\n';
+            this->_t += 2;
             stuck_count = 0;
         }
 
+        this->_curr_cost = d;
 
-        if (d <= 10 && _verbose) {
-            std::cout << _board;
+        if (_verbose) {
+            display_log(false);
         }
     }
 }
