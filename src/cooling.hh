@@ -20,10 +20,10 @@ enum CoolingType {
 // ================================
 
 // Exponential multiplicative cooling schedule
-float exp_mult_cooling(float t0, float alpha, int k);
+float exp_mult_cooling(float tk_1, float t0, float alpha);
 
 // Logarithmical multiplicative cooling schedule
-float log_mult_cooling(float t0, float alpha, int k);
+float log_mult_cooling(float tk_1, float t0, float alpha);
 
 // Linear multiplicative cooling schedule
 float lin_mult_cooling(float t0, float alpha, int k);

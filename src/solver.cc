@@ -3,14 +3,17 @@
 Solver::Solver(Board board) :
     _board(board)
 {
+    // this->_t0 = this->init_temp_max_c();
+    // this->_t0 = this->init_temp_mean_c();
     this->_t0 = this->init_temp_max_c();
+    // this->_t0 = 10.0f;
     this->_t = this->_t0;
-    this->_lambda = 0.98;
+    this->_lambda = 1.001f;
     this->_verbose = false;
 
     // TODO maybe change
-    this->_cooling_type = EXP_MULT;
-    this->_t_min = 1e-6;
+    this->_cooling_type = LOG_MULT;
+    this->_t_min = 0.5f;
 }
 
 Solver::Solver(Board board, float t0) :
@@ -44,24 +47,57 @@ float Solver::init_temp_max_c() {
     return max_dist;
 }
 
+float Solver::init_temp_mean_c() {
+    float sum_dist = 0.0f;
+
+    for (int i = 0; i < this->_board.get_width(); ++i) {
+        for (int j = 0; j < this->_board.get_width(); ++j) {
+            sum_dist += compute_tile_dist(i, j);
+        }
+    }
+
+    return sum_dist / this->_board.get_nb_tiles();
+}
+
+float Solver::init_temp_std_c()  {
+    float sum = 0.0f;
+    float sumsquare = 0.0f;
+    int n = this->_board.get_nb_tiles();
+
+    for (int i = 0; i < this->_board.get_width(); ++i) {
+        for (int j = 0; j < this->_board.get_width(); ++j) {
+            float dist = compute_tile_dist(i, j);
+
+            sum += dist;
+            sumsquare += dist * dist;
+        }
+    }
+
+    float mean = sum / n;
+    return sqrt(sumsquare / n - mean * mean);
+}
+
 float Solver::get_transition_prob(float dist_s1, float dist_s2) {
     return std::exp((dist_s1 - dist_s2) / this->_t);
 }
 
 void Solver::temp_decrement_fn() {
     _t *= _lambda;
-    // switch (this->_cooling_type) {
-    //     case EXP_MULT:
-    //         _t = exp_mult_cooling(_t0, _lambda, _k);
-    //         break;
-    //     default:
-    //         break;
-    // }
+    switch (this->_cooling_type) {
+        case EXP_MULT:
+            _t = exp_mult_cooling(_t, _t0, _lambda);
+            break;
+        case LOG_MULT:
+            _t = log_mult_cooling(_t, _t0, _lambda);
+            break;
+        default:
+            break;
+    }
 
     // TODO maybe change
     // Do something smarter
     if (_t < _t_min)
-        _t += 2.0f;
+        _t += 2 * this->_board.get_width(); // Increment according to the size of the board
 
     // Increment the counter
     // Keep the information of number of iteration
@@ -114,7 +150,6 @@ float Solver::compute_board_dist() {
 }
 
 void Solver::random_swap() {
-    // Get tiles that are available to move
     std::vector<int> tiles_ids = _board.get_available_tiles_ids();
 
     // Select to random ids
@@ -122,11 +157,11 @@ void Solver::random_swap() {
     int id2 = randn(0, tiles_ids.size()-1);
 
     // Swap the tiles
-    this->_board.swap_tiles(id1, id2);
+    this->_board.swap_tiles(tiles_ids[id1], tiles_ids[id2]);
 
     // Store the swap
-    this->_last_swap_i = id1;
-    this->_last_swap_j = id2;
+    this->_last_swap_i = tiles_ids[id1];
+    this->_last_swap_j = tiles_ids[id2];
 }
 
 void Solver::display_log(bool first_log) {
@@ -179,12 +214,11 @@ void Solver::solve() {
             float proba = get_transition_prob(d, new_d);
             float rd = randf();
 
-            // make the transition with the probability 'proba'
             if (rd > proba) {
                 // revert the swap
                 this->_board.swap_tiles(this->_last_swap_i, this->_last_swap_j);
             }
-            else {
+            else { // make the transition with the probability 'proba'
                 d = new_d;
             }
         }
@@ -202,7 +236,7 @@ void Solver::solve() {
             stuck_count = 0;
 
         if (stuck_count > 80) {
-            this->_t += 2;
+            this->_t += 2 * this->_board.get_width(); // Increment according to the size of the board;
             stuck_count = 0;
         }
 

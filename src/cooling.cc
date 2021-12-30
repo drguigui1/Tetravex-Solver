@@ -7,14 +7,18 @@
 // Exponential multiplicative cooling schedule
 // Tk = T0 * alpha^k
 // alpha between 0.8 and 0.9
-float exp_mult_cooling(float t0, float alpha, int k) {
+// k = (log(Tk-1) - log(T0)) / log(alpha) + 1
+float exp_mult_cooling(float tk_1, float t0, float alpha) {
+    float k = (log(tk_1) - log(t0)) / log(alpha) + 1;
     return t0 * pow(alpha, k);
 }
 
 // Logarithmical multiplicative cooling
 // Tk = T0 / (1 + alpha * log(1+k))
-// alpha > 1 
-float log_mult_cooling(float t0, float alpha, int k) {
+// alpha > 1
+// k = exp(((T0 / Tk-1) - 1)1/alpha)
+float log_mult_cooling(float tk_1, float t0, float alpha) {
+    float k = exp((t0 / tk_1 - 1) * 1.0f/alpha);
     return t0 / (1.0f + alpha * log(1.0f + k));
 }
 

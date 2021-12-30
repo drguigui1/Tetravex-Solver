@@ -23,6 +23,8 @@ private:
     void temp_decrement_fn();
     void random_swap();
     float init_temp_max_c();
+    float init_temp_mean_c();
+    float init_temp_std_c();
     void display_log(bool first_log);
 
     // all the board information
