@@ -25,7 +25,9 @@ float log_mult_cooling(float tk_1, float t0, float alpha) {
 // Linear multiplicative cooling schedule
 // Tk = t0 / (1 + alpha * k)
 // alpha > 0
-float lin_mult_cooling(float t0, float alpha, int k) {
+// k = (t0 / tk-1 - 1) * (1/alpha) + 1
+float lin_mult_cooling(float tk_1, float t0, float alpha) {
+    float k = (t0 / tk_1 - 1) * (1.0f / alpha) + 1;
     return t0 / (1.0f + alpha * k);
 }
 

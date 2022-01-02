@@ -7,7 +7,7 @@ class Solver {
 public:
     Solver(Board board);
     Solver(Board board, float init_temp);
-    Solver(Board board, float init_temp, float lambda);
+    Solver(Board board, float init_temp, float alpha);
 
     void solve();
     void save(std::string path);
@@ -40,10 +40,16 @@ private:
     float _t_min;
 
     // cooling factor
-    float _lambda;
+    float _alpha;
+
+    // geometric reheating factor
+    float _beta;
 
     // if true display information
     bool _verbose;
+
+    // Number of it stuck in local minima
+    float _stuck_count;
 
     // number of iteration
     // (temperature update)
@@ -56,6 +62,9 @@ private:
 
     // Current cost
     int _curr_cost;
+
+    // Current proba to make worst transition
+    float _curr_proba;
 
     // Type of cooling schedule
     // How to change the temperature

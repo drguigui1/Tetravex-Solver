@@ -3,31 +3,34 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    // this->_t0 = this->init_temp_max_c();
+    this->_t0 = 2 * this->init_temp_max_c();
     // this->_t0 = this->init_temp_mean_c();
-    this->_t0 = this->init_temp_max_c();
-    // this->_t0 = 10.0f;
+    // this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
     this->_t = this->_t0;
-    this->_lambda = 1.001f;
+    this->_alpha= 0.999f;
     this->_verbose = false;
 
-    // TODO maybe change
-    this->_cooling_type = LOG_MULT;
-    this->_t_min = 0.5f;
+    this->_cooling_type = LIN_MULT;
+    this->_t_min = 0.1f;
+
+    // For geometric reheating
+    this->_beta = 0.8f;
+
+    this->_k = 0.0f;
 }
 
 Solver::Solver(Board board, float t0) :
     _board(board),
     _t(t0)
 {
-    this->_lambda = 0.999;
+    this->_alpha = 0.999;
     this->_verbose = false;
 }
 
-Solver::Solver(Board board, float t0, float lambda) :
+Solver::Solver(Board board, float t0, float alpha) :
     _board(board),
     _t(t0),
-    _lambda(lambda)
+    _alpha(alpha)
 {
     this->_verbose = false;
 }
@@ -82,13 +85,15 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
 }
 
 void Solver::temp_decrement_fn() {
-    _t *= _lambda;
     switch (this->_cooling_type) {
         case EXP_MULT:
-            _t = exp_mult_cooling(_t, _t0, _lambda);
+            _t = exp_mult_cooling(_t, _t0, _alpha);
             break;
         case LOG_MULT:
-            _t = log_mult_cooling(_t, _t0, _lambda);
+            _t = log_mult_cooling(_t, _t0, _alpha);
+            break;
+        case LIN_MULT:
+            _t = lin_mult_cooling(_t, _t0, _alpha);
             break;
         default:
             break;
@@ -96,8 +101,8 @@ void Solver::temp_decrement_fn() {
 
     // TODO maybe change
     // Do something smarter
-    if (_t < _t_min)
-        _t += 2 * this->_board.get_width(); // Increment according to the size of the board
+    // if (_t < _t_min)
+    //     _t += 1.5f; // Increment according to the size of the board
 
     // Increment the counter
     // Keep the information of number of iteration
@@ -172,10 +177,12 @@ void Solver::display_log(bool first_log) {
     if (first_log) {
         std::cout << "T0:     " << _t0 << '\n';
         std::cout << "T_min:  " << _t_min << '\n';
-        std::cout << "Lambda: " << _lambda << '\n';
+        std::cout << "Lambda: " << _alpha << '\n';
     }
     std::cout << "T:      " << _t << '\n';
     std::cout << "Cost:   " << _curr_cost << '\n';
+    std::cout << "Proba:  " << _curr_proba << '\n';
+    std::cout << "Stuck C " << _stuck_count << '\n';
 
     int w = _board.get_width();
 
@@ -193,9 +200,9 @@ void Solver::display_log(bool first_log) {
 void Solver::solve() {
     // Compute the distance of the board
     float d = compute_board_dist();
-    int stuck_count = 0;
 
-    this->_curr_cost = d;
+    _stuck_count = 0.0f;
+    _curr_cost = d;
 
     if (_verbose) {
         display_log(true);
@@ -212,6 +219,10 @@ void Solver::solve() {
         // Check for worst cases
         if (new_d > d) {
             float proba = get_transition_prob(d, new_d);
+
+            // Store the current proba
+            _curr_proba = proba;
+
             float rd = randf();
 
             if (rd > proba) {
@@ -221,26 +232,24 @@ void Solver::solve() {
             else { // make the transition with the probability 'proba'
                 d = new_d;
             }
+            _stuck_count++;
+        } else if (new_d < d) {
+            _stuck_count = 0.0f;
+            d = new_d;
         }
         else {
-            // Update current distance
-            d = new_d;
+            _stuck_count++;
         }
 
         // Update the temperature
         temp_decrement_fn();
 
-        if (new_d >= d)
-            stuck_count++;
-        else
-            stuck_count = 0;
-
-        if (stuck_count > 80) {
-            this->_t += 2 * this->_board.get_width(); // Increment according to the size of the board;
-            stuck_count = 0;
+        if (_stuck_count > 20) {
+            // this->_t += this->_t0; // Increment according to the size of the board;
+            _t = _t / _beta;
         }
 
-        this->_curr_cost = d;
+        _curr_cost = d;
 
         if (_verbose) {
             display_log(false);
