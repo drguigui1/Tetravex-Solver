@@ -242,7 +242,7 @@ void Solver::solve() {
             _stuck_count++;
         }
 
-        if (_stuck_count > 30) {
+        if (_stuck_count > 80) {
             // Reheating
             heating_schedule();
         } else {
