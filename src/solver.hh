@@ -20,7 +20,8 @@ private:
     float compute_tile_dist(int i, int j);
     float compute_board_dist();
     float get_transition_prob(float dist_s1, float dist_s2);
-    void temp_decrement_fn();
+    void cooling_schedule();
+    void heating_schedule();
     void random_swap();
     float init_temp_max_c();
     float init_temp_mean_c();

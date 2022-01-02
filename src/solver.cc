@@ -3,18 +3,19 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    this->_t0 = 2 * this->init_temp_max_c();
+    // this->_t0 = this->init_temp_max_c();
     // this->_t0 = this->init_temp_mean_c();
-    // this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
+    this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
+    //this->_t0 = this->compute_board_dist();
     this->_t = this->_t0;
-    this->_alpha= 0.999f;
+    this->_alpha= 0.99f;
     this->_verbose = false;
 
-    this->_cooling_type = LIN_MULT;
+    this->_cooling_type = EXP_MULT;
     this->_t_min = 0.1f;
 
     // For geometric reheating
-    this->_beta = 0.8f;
+    this->_beta = 0.99f;
 
     this->_k = 0.0f;
 }
@@ -84,7 +85,7 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
     return std::exp((dist_s1 - dist_s2) / this->_t);
 }
 
-void Solver::temp_decrement_fn() {
+void Solver::cooling_schedule() {
     switch (this->_cooling_type) {
         case EXP_MULT:
             _t = exp_mult_cooling(_t, _t0, _alpha);
@@ -99,13 +100,13 @@ void Solver::temp_decrement_fn() {
             break;
     }
 
-    // TODO maybe change
-    // Do something smarter
-    // if (_t < _t_min)
-    //     _t += 1.5f; // Increment according to the size of the board
-
     // Increment the counter
     // Keep the information of number of iteration
+    _k++;
+}
+
+void Solver::heating_schedule() {
+    _t = _t / _beta;
     _k++;
 }
 
@@ -241,12 +242,13 @@ void Solver::solve() {
             _stuck_count++;
         }
 
-        // Update the temperature
-        temp_decrement_fn();
-
-        if (_stuck_count > 20) {
-            // this->_t += this->_t0; // Increment according to the size of the board;
-            _t = _t / _beta;
+        if (_stuck_count > 30) {
+            // Reheating
+            heating_schedule();
+        } else {
+            // Update the temperature
+            // Cooling
+            cooling_schedule();
         }
 
         _curr_cost = d;
