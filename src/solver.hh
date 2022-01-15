@@ -6,8 +6,6 @@
 class Solver {
 public:
     Solver(Board board);
-    Solver(Board board, float init_temp);
-    Solver(Board board, float init_temp, float alpha);
 
     void solve();
     void save(std::string path);
@@ -15,6 +13,7 @@ public:
     // Getters / Setters
     Board get_board() const { return this->_board; }
     void set_verbose() { this->_verbose = true; }
+    void display_log(bool first_log);
 
 private:
     float compute_tile_dist(int i, int j);
@@ -23,10 +22,10 @@ private:
     void cooling_schedule();
     void heating_schedule();
     void random_swap();
+    void swap();
     float init_temp_max_c();
     float init_temp_mean_c();
     float init_temp_std_c();
-    void display_log(bool first_log);
 
     // all the board information
     Board _board;
@@ -40,11 +39,11 @@ private:
     // minimum temperature
     float _t_min;
 
-    // cooling factor
-    float _alpha;
+    // Power coefficient
+    // Define how to update the temperature
+    float _c;
 
-    // geometric reheating factor
-    float _beta;
+    float _alpha;
 
     // if true display information
     bool _verbose;
@@ -54,7 +53,10 @@ private:
 
     // number of iteration
     // (temperature update)
-    int _k;
+    int _nb_it;
+
+    // Number of time stuck
+    float _stuck_time;
 
     // Keep information of the index of the last
     // In order to revert if necessary
@@ -69,5 +71,5 @@ private:
 
     // Type of cooling schedule
     // How to change the temperature
-    CoolingType _cooling_type;
+    // CoolingType _cooling_type;
 };

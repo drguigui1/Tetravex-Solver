@@ -140,8 +140,8 @@ def generate_grid(grid_size):
 
     return new_grid
 
-def test_fuzzing(nb_tests):
-    grid_sizes = [2,2,2,3,3,3,3,4,4,5]
+def test_fuzzing(nb_tests, launch=True):
+    grid_sizes = [3,4,4,4,5,5,5,6,6,6]
     Path("tests/generated_tests/").mkdir(parents=True, exist_ok=True)
 
     for i in range(nb_tests):
@@ -157,7 +157,8 @@ def test_fuzzing(nb_tests):
         grid_to_file(grid, test_path)
 
         # Launch the test
-        launch_one_test(test_path)
+        if launch:
+            launch_one_test(test_path)
 
 # ====================
 # ======= SAVE =======
@@ -187,6 +188,7 @@ def build_arg_list():
     arg_parser.add_argument('-n', '--name', help='Launch only one test according to its name')
     arg_parser.add_argument('-a', '--all', action="store_true", help='Launch all tests (set by default)')
     arg_parser.add_argument('-f', '--fuzzing', help='Launch test fuzzing, if not precised the module launch 10 random fuzzing tests')
+    arg_parser.add_argument('-g', '--gen', help='Generate some tests')
 
     return arg_parser.parse_args()
 
@@ -202,6 +204,8 @@ def main():
         launch_one_test(arg_list.name)
     elif arg_list.fuzzing:
         test_fuzzing(int(arg_list.fuzzing))
+    elif arg_list.gen:
+        test_fuzzing(int(arg_list.gen), False)
     else: # all case (default case)
         tests_path = list_tests(base_tests_path)
         launch_all_tests(tests_path)

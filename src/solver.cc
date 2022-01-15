@@ -3,37 +3,33 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    // this->_t0 = this->init_temp_max_c();
+    this->_t0 = this->_board.get_width() * (this->_board.get_width() - 1);
     // this->_t0 = this->init_temp_mean_c();
-    this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
+    // this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
     //this->_t0 = this->compute_board_dist();
+    // this->_t0 = 100.0f;
     this->_t = this->_t0;
-    this->_alpha= 0.99f;
+
+    //this->_alpha= 0.999f;
     this->_verbose = false;
 
-    this->_cooling_type = EXP_MULT;
-    this->_t_min = 0.1f;
+    this->_t_min = 0.000001f;
+
+    // Power coefficient (how to update the temperature)
+    this->_c = 150000.0f;
+
+    // Number of iteration
+    this->_nb_it = 0.0f;
+
+    // Number of time stuck
+    this->_stuck_time = 0.0f;
+
+    this->_alpha = 0.99998f;
 
     // For geometric reheating
-    this->_beta = 0.99f;
+    // this->_beta = 0.9f;
 
-    this->_k = 0.0f;
-}
-
-Solver::Solver(Board board, float t0) :
-    _board(board),
-    _t(t0)
-{
-    this->_alpha = 0.999;
-    this->_verbose = false;
-}
-
-Solver::Solver(Board board, float t0, float alpha) :
-    _board(board),
-    _t(t0),
-    _alpha(alpha)
-{
-    this->_verbose = false;
+    // this->_k = 0.0f;
 }
 
 float Solver::init_temp_max_c() {
@@ -86,28 +82,17 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
 }
 
 void Solver::cooling_schedule() {
-    switch (this->_cooling_type) {
-        case EXP_MULT:
-            _t = exp_mult_cooling(_t, _t0, _alpha);
-            break;
-        case LOG_MULT:
-            _t = log_mult_cooling(_t, _t0, _alpha);
-            break;
-        case LIN_MULT:
-            _t = lin_mult_cooling(_t, _t0, _alpha);
-            break;
-        default:
-            break;
-    }
-
     // Increment the counter
     // Keep the information of number of iteration
-    _k++;
+    // _t *= pow((_t_min / _t), 1.0f / _c);
+    _t *= _alpha;
+    _nb_it++;
 }
 
 void Solver::heating_schedule() {
-    _t = _t / _beta;
-    _k++;
+    _t += 1.0f;
+    _stuck_count = 0.0f;
+    _c += 100000.0f;
 }
 
 float Solver::compute_tile_dist(int i, int j) {
@@ -170,19 +155,40 @@ void Solver::random_swap() {
     this->_last_swap_j = tiles_ids[id2];
 }
 
+void Solver::swap() {
+    random_swap();
+
+    // compute new board dist
+    float new_d = compute_board_dist();
+
+    // Check for worst case
+    if (new_d > _curr_cost) {
+        float proba = get_transition_prob(_curr_cost, new_d);
+
+        // Store the current proba
+        _curr_proba = proba;
+
+        float rd = randf();
+
+        if (rd > proba) {
+            // revert the swap
+            this->_board.swap_tiles(this->_last_swap_i, this->_last_swap_j);
+        }
+    }
+}
+
 void Solver::display_log(bool first_log) {
-    std::cout << "It idx: " << _k << '\n';
+    std::cout << "It idx: " << _nb_it << '\n';
     std::cout << _board << '\n';
-    std::cout << "It idx: " << _k << '\n';
+    std::cout << "It idx: " << _nb_it << '\n';
 
     if (first_log) {
         std::cout << "T0:     " << _t0 << '\n';
         std::cout << "T_min:  " << _t_min << '\n';
-        std::cout << "Lambda: " << _alpha << '\n';
     }
     std::cout << "T:      " << _t << '\n';
     std::cout << "Cost:   " << _curr_cost << '\n';
-    std::cout << "Proba:  " << _curr_proba << '\n';
+    // std::cout << "Proba:  " << _curr_proba << '\n';
     std::cout << "Stuck C " << _stuck_count << '\n';
 
     int w = _board.get_width();
@@ -201,61 +207,36 @@ void Solver::display_log(bool first_log) {
 void Solver::solve() {
     // Compute the distance of the board
     float d = compute_board_dist();
-
-    _stuck_count = 0.0f;
     _curr_cost = d;
 
     if (_verbose) {
         display_log(true);
     }
 
-    while (d != 0.0) {
-        // Apply random swap (keep in memory the swap)
-        // Swap randomly
-        random_swap();
+    while (_curr_cost != 0.0) {
+        // Apply swap
+        swap();
 
-        // compute new board dist
-        float new_d = compute_board_dist();
+        float new_d = compute_board_dist();        
+        
+        // Increment _stuck_count if stuck
+        _stuck_count = (new_d == _curr_cost) ? _stuck_count + 1 : 0.0f;
 
-        // Check for worst cases
-        if (new_d > d) {
-            float proba = get_transition_prob(d, new_d);
-
-            // Store the current proba
-            _curr_proba = proba;
-
-            float rd = randf();
-
-            if (rd > proba) {
-                // revert the swap
-                this->_board.swap_tiles(this->_last_swap_i, this->_last_swap_j);
-            }
-            else { // make the transition with the probability 'proba'
-                d = new_d;
-            }
-            _stuck_count++;
-        } else if (new_d < d) {
-            _stuck_count = 0.0f;
-            d = new_d;
-        }
-        else {
-            _stuck_count++;
-        }
-
-        if (_stuck_count > 80) {
-            // Reheating
+        // Reheating
+        if (_stuck_count == 100000) {
             heating_schedule();
-        } else {
-            // Update the temperature
-            // Cooling
-            cooling_schedule();
+            display_log(false);
         }
 
-        _curr_cost = d;
+        cooling_schedule();
+        _curr_cost = new_d;
 
         if (_verbose) {
             display_log(false);
         }
+
+        if ((int) _nb_it % 1000000 == 0)
+            display_log(false);
     }
 }
 
