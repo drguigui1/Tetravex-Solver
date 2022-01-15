@@ -16,7 +16,7 @@ Solver::Solver(Board board) :
     this->_t_min = 0.000001f;
 
     // Power coefficient (how to update the temperature)
-    this->_c = 150000.0f;
+    this->_c = 100000.0f;
 
     // Number of iteration
     this->_nb_it = 0.0f;
@@ -84,7 +84,7 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
 void Solver::cooling_schedule() {
     // Increment the counter
     // Keep the information of number of iteration
-    // _t *= pow((_t_min / _t), 1.0f / _c);
+    //_t *= pow((_t_min / _t), 1.0f / _c);
     _t *= _alpha;
     _nb_it++;
 }
