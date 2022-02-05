@@ -216,18 +216,17 @@ void Solver::solve() {
         // Reheating
         if (_stuck_count == 100000) {
             heating_schedule();
-            display_log(false);
+            if (_verbose)
+                display_log(false);
         }
 
         cooling_schedule();
         _curr_cost = new_d;
 
-        if (_verbose) {
-            display_log(false);
+        if ((int) _nb_it % 1000000 == 0) {
+            if (_verbose)
+                display_log(false);
         }
-
-        if ((int) _nb_it % 1000000 == 0)
-            display_log(false);
     }
 }
 

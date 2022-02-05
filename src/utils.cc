@@ -26,7 +26,7 @@ Tile get_tile_from_str(std::string str) {
     int sud = chr_digit_to_int(s_input[0][3]);
 
     bool good_pos = false;
-    if (s_input.size() > 1 && std::strcmp(s_input[1].c_str(), "@")) {
+    if (s_input.size() > 1 && std::strcmp(s_input[1].c_str(), "@") == 0) {
         good_pos = true;
     }
 
