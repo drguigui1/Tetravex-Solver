@@ -8,15 +8,15 @@ Solver::Solver(Board board) :
     // this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
     //this->_t0 = this->compute_board_dist();
     // this->_t0 = 50.0f;
+
     this->_t = this->_t0;
 
-    //this->_alpha= 0.999f;
     this->_verbose = false;
 
     this->_t_min = 0.000001f;
 
     // Power coefficient (how to update the temperature)
-    this->_c = 100000.0f;
+    // this->_c = 100000.0f;
 
     // Number of iteration
     this->_nb_it = 0.0f;
@@ -25,11 +25,6 @@ Solver::Solver(Board board) :
     this->_stuck_time = 0.0f;
 
     this->_alpha = 0.999980298f;
-
-    // For geometric reheating
-    // this->_beta = 0.9f;
-
-    // this->_k = 0.0f;
 }
 
 float Solver::init_temp_max_c() {
@@ -82,9 +77,6 @@ float Solver::get_transition_prob(float dist_s1, float dist_s2) {
 }
 
 void Solver::cooling_schedule() {
-    // Increment the counter
-    // Keep the information of number of iteration
-    //_t *= pow((_t_min / _t), 1.0f / _c);
     _t *= _alpha;
     _nb_it++;
 }
@@ -92,7 +84,7 @@ void Solver::cooling_schedule() {
 void Solver::heating_schedule() {
     _t += 1.0f;
     _stuck_count = 0.0f;
-    _c += 100000.0f;
+    //_c += 100000.0f;
 }
 
 float Solver::compute_tile_dist(int i, int j) {
@@ -188,7 +180,6 @@ void Solver::display_log(bool first_log) {
     }
     std::cout << "T:      " << _t << '\n';
     std::cout << "Cost:   " << _curr_cost << '\n';
-    // std::cout << "Proba:  " << _curr_proba << '\n';
     std::cout << "Stuck C " << _stuck_count << '\n';
 
     int w = _board.get_width();

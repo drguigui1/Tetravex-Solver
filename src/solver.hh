@@ -41,7 +41,7 @@ private:
 
     // Power coefficient
     // Define how to update the temperature
-    float _c;
+    //float _c;
 
     float _alpha;
 
