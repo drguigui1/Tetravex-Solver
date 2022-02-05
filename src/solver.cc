@@ -3,11 +3,11 @@
 Solver::Solver(Board board) :
     _board(board)
 {
-    this->_t0 = this->_board.get_width() * (this->_board.get_width() - 1);
+    this->_t0 = this->_board.get_width() * (this->_board.get_width());
     // this->_t0 = this->init_temp_mean_c();
     // this->_t0 =  2 * (this->_board.get_width()) * this->init_temp_std_c();
     //this->_t0 = this->compute_board_dist();
-    // this->_t0 = 100.0f;
+    // this->_t0 = 50.0f;
     this->_t = this->_t0;
 
     //this->_alpha= 0.999f;
@@ -24,7 +24,7 @@ Solver::Solver(Board board) :
     // Number of time stuck
     this->_stuck_time = 0.0f;
 
-    this->_alpha = 0.99998f;
+    this->_alpha = 0.999980298f;
 
     // For geometric reheating
     // this->_beta = 0.9f;
